@@ -1,0 +1,149 @@
+---
+title: "p8119_hw2_jsg2145"
+author: "Jared Garfinkel"
+date: "10/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(viridis)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	message = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
+
+```{r}
+tibble("Chapter" = c(7, 8, 9), "Problems" = c("1, 2, 3, 4", "7", "1, 2, 3"))
+```
+
+# Chapter 7
+
+## Exercise 1
+
+We test for a codominant mode of inheritance using an odds ratio.
+
+```{r}
+data = tibble(GM = c("present", "not present"), nsubjects = c(293, 4627), cases = c(23, 1343))
+data
+tidy_dat = tibble(exposed = c(23, 293-23), unexposed = c(1343, 4627-1343))
+tidy_dat
+```
+
+```{r}
+OR = 23*(4627-1343)/(293-23)/1343
+OR
+```
+
+The odds ratio is 0.208.
+
+```{r}
+var_log_OR = 1/23 + 1/1343 + 1/270 + 1/3284
+var_log_OR
+SE = sqrt(var_log_OR)
+lower = exp(log(OR)-SE*dnorm(0.975))
+lower
+upper = exp(log(OR)+SE*dnorm(0.975))
+upper
+```
+
+The confidence interval is (`r round(lower, 3)`, `r round(upper, 3)`). This indicates that there is evidence to suggest that there is a reduced odds of having the exposure in the diseased compared to the non-diseased.
+
+## Problem 2
+
+### Part a
+
+Compute the test statistics for the additive model and the dominant model and compare.
+
+```{r}
+df = tibble(disease = c("acne_patient", "control"), GG = c(66, 99), GA = c(43, 15), AA = c(4, 0))
+df
+dom_df = tibble(disease = c("acne patient", "control"), `AA or GA` = (pull(df, AA) + pull(df, GA)), GG = pull(df, GG))
+dom_df
+chisq.test(dom_df[,-1]) # p = <0.001
+allele_df = tibble(disease = c("acne patient", "control"), A = c(2*4+83, 2*0+15), G = c(2*66+43, 2*99+15))
+allele_df
+chisq.test(allele_df[,-1]) # p < 0.001
+```
+These two tests yield similar answers. They both show a high degree of significance in the dominant and additive models.
+
+### Part b
+
+```{r}
+var_log_OR = 1/47+1/66+1/15+1/99
+log_OR = log(47*99/66/15)
+lower = exp(log_OR-sqrt(var_log_OR)*dnorm(0.975))
+upper = exp(log_OR+sqrt(var_log_OR)*dnorm(0.975))
+```
+
+The confidence interval of the dominant odds ratio is (`r round(lower, 3)`, `r round(upper, 3)`). This makes sense since the chi squared tests yield significant results.
+
+### Part c
+
+```{r}
+df
+rec_df = tibble(disease = pull(df, disease), `GG or GA` = pull(df, GG) + pull(df, GA), AA = pull(df, AA))
+rec_df
+fisher.test(rec_df[,-1]) # p = 0.0597
+```
+
+This Fisher exact test shows the recessive model is marginally significant at p = 0.0597. However, this is much greater than the significance levels for either the dominant model or the additive model.
+
+## Problem 3
+
+Modes of inheritance: Dominant, codominant, recessive 
+
+```{r}
+df_dat = tibble(disease = c("case", "control"), x0 = c(500, 521), x1 = c(350, 270), x2 = c(120, 130), total = x0 + x1 + x2)
+df_dat
+```
+
+$$K = \gamma_2p_D^2+f_0(1-p_D^2)$$
+
+The odds ratios are relative to a baseline, x0.
+
+```{r}
+OR0 = 1
+OR1 = 350*521/500/270
+OR2 = 120*521/500/130
+OR_df = cbind(OR0, OR1, OR2)
+round(OR_df, 3)
+```
+
+The odds ratio for x = 1 is `r round(OR1, 3)` and for x = 2, OR = `r round(OR2, 3)`.
+
+The confidence intervals are as follows:
+
+```{r}
+CI_OR = function(df = df_dat, x = x1, a, b, c, d) {
+  b = pull(df, x0)[[1]]
+  d = pull(df, x0)[[2]]
+  a = pull(df, x)[[1]]
+  c = pull(df, x)[[2]]
+  var_log_OR = 1/a+1/b+1/c+1/d
+  log_OR = log(a*d/b/c)
+  lower = exp(log_OR-sqrt(var_log_OR)*dnorm(0.975))
+  upper = exp(log_OR+sqrt(var_log_OR)*dnorm(0.975))
+  CI = cbind(lower, upper)
+  return(CI)
+}
+
+CI_x0 = CI_OR(x = "x0")
+CI_x1 = CI_OR(x = "x1")
+CI_x2 = CI_OR(x = "x2")
+```
+
+The confidence intervals are x0: `r round(OR0, 3)` (`r round(CI_x0[[1]], 3)`, `r round(CI_x0[[2]], 3)`), x1: `r round(OR1, 3)`  (`r round(CI_x1[[1]], 3)`, `r round(CI_x1[[2]], 3)`), and x2: `r round(OR2, 3)` (`r round(CI_x2[[1]], 3)`, `r round(CI_x2[[2]], 3)`).
+
