@@ -537,6 +537,107 @@ CI_x0 = CI_OR(x = &quot;x0&quot;)
 CI_x1 = CI_OR(x = &quot;x1&quot;)
 CI_x2 = CI_OR(x = &quot;x2&quot;)</code></pre>
 <p>The confidence intervals are x0: 1 (0.978, 1.022), x1: 1.351 (1.317, 1.385), and x2: 0.962 (0.929, 0.996).</p>
+<pre class="r"><code>df_dat</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   disease    x0    x1    x2 total
+##   &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 case      500   350   120   970
+## 2 control   521   270   130   921</code></pre>
+<pre class="r"><code>dom_df = tibble(disease = pull(df_dat, disease), x0 = pull(df_dat, x0), `x1 or x2` = pull(df_dat, x1) + pull(df_dat, x2))
+chisq.test(dom_df[,-1]) # p = 0.032</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test with Yates&#39; continuity correction
+## 
+## data:  dom_df[, -1]
+## X-squared = 4.5976, df = 1, p-value = 0.03202</code></pre>
+<pre class="r"><code>rec_df = tibble(disease = pull(df_dat, disease), `x0 or x1` = pull(df_dat, x0) + pull(df_dat, x1), x2 = pull(df_dat, x2))
+chisq.test(rec_df[,-1]) # 0.2932</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test with Yates&#39; continuity correction
+## 
+## data:  rec_df[, -1]
+## X-squared = 1.105, df = 1, p-value = 0.2932</code></pre>
+<pre class="r"><code>chisq.test(df_dat[,-1]) # p = 0.01951</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  df_dat[, -1]
+## X-squared = 9.8915, df = 3, p-value = 0.01951</code></pre>
+<p>The dominant and additive model tests are significant, but the recessive model test is not. This indicates that a dominant or additive model may be more appropriate for this data.</p>
+</div>
+</div>
+<div id="problem-4" class="section level1">
+<h1>Problem 4</h1>
+<p>Definitions:</p>
+<p><span class="math display">\[n_{DSL} = 2(z_{(1-\beta)}+z_{(1-\alpha/2)})^2p_D(1-p_D)/\Delta_D^2\]</span></p>
+<p><span class="math display">\[\Delta_D = (p_{D|cases}-p_{D|controls})\]</span></p>
+<p>Given:</p>
+<p><span class="math inline">\(\gamma_1 = 1.3\)</span></p>
+<p>It follows that under an additive model, <span class="math inline">\(\gamma_2 = 2*\gamma_1-1 = 1.6\)</span></p>
+<p>So, <span class="math inline">\(f_1 = 1.3*f_0\)</span> and <span class="math inline">\(f_2 = 1.6*f_0\)</span></p>
+<p>Since <span class="math inline">\(\sum_i(f_i)\)</span> = 1,</p>
+<p><span class="math inline">\((1.3 + 1.6 + 1)*f_0 = 1, f_0 = 1/3.9 =\)</span> 0.26 = p(disease | i copies of the allele)</p>
+<p><span class="math inline">\(f_1 = 1.3*0.26\)</span> = 0.338</p>
+<p><span class="math inline">\(f_2 = 1.6*0.26\)</span> = 0.416</p>
+<p>risk of colon cancer (K) = .04</p>
+<p>power = 0.8</p>
+<p><span class="math inline">\(p_D\)</span> = 0.55</p>
+<p>So,</p>
+<p><span class="math inline">\(q_{cases} = f_2g_2/K = 0.416*0.55^2/0.04\)</span> = 3.146</p>
+<p><span class="math inline">\(q_{controls} = (1-f_2)g_2/Q\)</span> = 0.184</p>
+<p>q = <span class="math inline">\(\frac{r*q_{case} + s*q_{control}}{n}\)</span> = (3.146 + 0.184)/2 = 1.665</p>
+<p><span class="math inline">\(\Delta_D = (q_{cases} - q_{controls})\)</span> = 3.146 - 0.184 = 2.962</p>
+<p>Assume: <span class="math inline">\(\alpha\)</span> = 0.05</p>
+<p>r = s = <span class="math inline">\(\frac{2*(z_{(1-\beta)}+z_{(1-\alpha/2)})^2*q(1-q)}{\Delta^2}\)</span></p>
+</div>
+<div id="chapter-8" class="section level1">
+<h1>Chapter 8</h1>
+<div id="problem-7" class="section level2">
+<h2>Problem 7</h2>
+<p><span class="math inline">\(\hat{\lambda}\)</span></p>
+<pre class="r"><code>data = &quot;5.112124234 0.827057943 3.158134984 3.395351358 0.056900096 0.878446231 4.955161751 0.127185994 1.115390624 1.471334371 0.042577497 0.833171588 0.389633293 0.088260639 0.008057015 0.206122142 0.052385560 0.020823177 1.445823813 0.195321095&quot; %&gt;% 
+  str_replace_all(., &quot; &quot;, &quot;,&quot;)
+data2 = data %&gt;% 
+  str_split_fixed(., &quot;,&quot;, n = 20) %&gt;% 
+  as.numeric()
+
+median = median(data2)
+
+lambda = 0.4549/median
+
+lambda</code></pre>
+<pre><code>## [1] 0.7477657</code></pre>
+<pre class="r"><code>lambda*data2</code></pre>
+<pre><code>##  [1] 3.82267127 0.61844558 2.36154509 2.53892736 0.04254794 0.65687198
+##  [7] 3.70530010 0.09510533 0.83405087 1.10021341 0.03183799 0.62301715
+## [13] 0.29135442 0.06599828 0.00602476 0.15413107 0.03917213 0.01557086
+## [19] 1.08113749 0.14605442</code></pre>
+<pre class="r"><code>qchisq(.95, 1)</code></pre>
+<pre><code>## [1] 3.841459</code></pre>
+<pre class="r"><code>which(lambda*data2 &gt; qchisq(.95, 1))</code></pre>
+<pre><code>## integer(0)</code></pre>
+<p>There is no evidence for admixture since the inflation factor adjusted chi-squared values for the null markers are less than the chi-squared with 1 df.</p>
+<p>The genomic adjustment factor is 0.748.</p>
+<p>The marker of interest is not associated with affection status in the alleles test or the trend test adjusted for genetic control.</p>
+</div>
+</div>
+<div id="chapter-9" class="section level1">
+<h1>Chapter 9</h1>
+<div id="problem-1" class="section level2">
+<h2>Problem 1</h2>
+<p><span class="math inline">\((x-y)^2/(x+y)\)</span></p>
+<pre class="r"><code>(78-46)^2/(78+46)</code></pre>
+<pre><code>## [1] 8.258065</code></pre>
+<p>Confirmed.</p>
+</div>
+<div id="problem-2-1" class="section level2">
+<h2>Problem 2</h2>
+<p>The alternative hypothesis of a TDT is that a marker is both linked and associated with a disease locus underlying the trait.</p>
+<p>A rejection of the null in a case-control or cohort study does not necessarily mean an association with a disease locus because of issues with population substructure.</p>
+</div>
+<div id="problem-3-1" class="section level2">
+<h2>Problem 3</h2>
+<p>The TDT is conditioned on the parental genotypes. The null distribution is computed using the distribution of the offspring genotypes conditional on parental genotypes and offspring traits.</p>
 </div>
 </div>
 
